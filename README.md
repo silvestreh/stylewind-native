@@ -57,6 +57,62 @@ const MyComponent = () => {
 export default MyComponent;
 ```
 
+## Safe Areas
+
+Use the `safe:*` utilities to read insets from
+[`react-native-safe-area-context`](https://github.com/AppAndFlow/react-native-safe-area-context)
+without wrapping anything:
+
+```tsx
+const Screen = tw.View`
+  flex-1
+  safe:pt
+  safe:pb
+`;
+```
+
+| Utility | Sets |
+| --- | --- |
+| `safe:pt` `safe:pb` `safe:pl` `safe:pr` | padding to the matching inset |
+| `safe:mt` `safe:mb` `safe:ml` `safe:mr` | margin to the matching inset |
+| `safe:top` `safe:bottom` `safe:left` `safe:right` | position offset to the matching inset |
+| `safe:h-top` `safe:h-bottom` | height to the top / bottom inset |
+| `safe:w-left` `safe:w-right` | width to the left / right inset |
+
+> `tw.SafeAreaView` wraps React Native's `SafeAreaView`, which
+> [was deprecated in React Native 0.81](https://reactnative.dev/blog/2025/08/12/react-native-0.81)
+> and will be removed. It is marked `@deprecated` here too. Prefer `tw.View` with
+> `safe:*` utilities, or pass `react-native-safe-area-context`'s `SafeAreaView` via
+> the `component` prop.
+
+## Loading Your Tailwind Config
+
+By default, `styledwind-native` tries to load `tailwind.config.{js,ts,tsx,json}`
+from your app's root. That lookup is path-based and only works when the package is
+hoisted flat into your app's `node_modules` (plain npm or yarn). It does **not** work
+with pnpm, in hoisted monorepos, or when your config lives somewhere else.
+
+For those setups, or whenever you want to be explicit, create your own instance
+and import it everywhere instead of the default export:
+
+```ts
+// src/tw.ts
+import { createStyledwind } from 'styledwind-native';
+import config from '../tailwind.config'; // .js or .ts, Metro resolves either
+
+export const { tw, Provider, useColorScheme } = createStyledwind(config);
+export default tw;
+```
+
+```tsx
+import tw, { Provider, useColorScheme } from './tw';
+```
+
+`Provider` and `useColorScheme` returned by `createStyledwind` are bound to that
+instance, so always use the ones from your own `tw` module rather than the ones
+exported from the package root. Every instance is independent, which also makes
+it easy to have more than one config or to test components in isolation.
+
 ## Provider Setup
 
 To enable color scheme management, wrap your app with the `Provider` component:
@@ -149,11 +205,51 @@ const Text = tw.Text`
 
 When set to `'device'` mode, the library automatically detects system color scheme changes and updates all styled components accordingly.
 
-## VS Code Intellisense
+## Editor Autocomplete
 
-Add the following to the settings of the
-[official Tailwind plugin](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
-for VS Code.
+Tailwind's language server only knows the classes in your Tailwind config, so
+`ios:`, `android:`, `safe:pt` and friends don't autocomplete out of the box.
+`styledwind-native` ships a Tailwind preset that adds them. Add it to your config:
+
+```js
+// tailwind.config.js
+module.exports = {
+  presets: [require('styledwind-native/tailwind')],
+  // ...your theme
+};
+```
+
+```ts
+// tailwind.config.ts
+import type { Config } from 'tailwindcss';
+import styledwind from 'styledwind-native/tailwind';
+
+export default {
+  presets: [styledwind],
+  // ...your theme
+} satisfies Config;
+```
+
+The preset registers:
+
+- the device prefixes `twrnc` evaluates at runtime: `ios:`, `android:`, `web:`,
+  `windows:`, `macos:`, `portrait:`, `landscape:` and `retina:`
+- the safe-area utilities: `safe:pt`, `safe:pb`, `safe:pl`, `safe:pr`, `safe:mt`,
+  `safe:mb`, `safe:ml`, `safe:mr`, `safe:top`, `safe:bottom`, `safe:left`,
+  `safe:right`, `safe:h-top`, `safe:h-bottom`, `safe:w-left` and `safe:w-right`
+
+It's safe to leave the preset in the config you pass to `createStyledwind` or that
+`twrnc` picks up: at runtime it only marks the `safe:*` classes as known so `twrnc`
+never warns about them.
+
+Then teach the language server where your classes live. Both editors use the
+[same language server](https://github.com/tailwindlabs/tailwindcss-intellisense),
+only the settings key differs.
+
+### VS Code
+
+Add to your settings for the
+[official Tailwind extension](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss):
 
 ```jsonc
 // ...
@@ -172,6 +268,27 @@ for VS Code.
   "tw`([^`]*)", // tw`...`
   "tw\\.[^`]+`([^`]*)`" // tw.xxx<xxx>`...`
 ],
+```
+
+### Zed
+
+Zed ships [Tailwind support](https://zed.dev/docs/languages/tailwindcss) for
+TypeScript and JavaScript out of the box. Add to your project's
+`.zed/settings.json` (or your global `settings.json`):
+
+```json
+{
+  "lsp": {
+    "tailwindcss-language-server": {
+      "settings": {
+        "classAttributes": ["style"],
+        "experimental": {
+          "classRegex": ["tw`([^`]*)", "tw\\.[^`]+`([^`]*)`"]
+        }
+      }
+    }
+  }
+}
 ```
 
 More detailed instructions, including how to add snippets, are available

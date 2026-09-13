@@ -1,6 +1,4 @@
-import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
-import { renderHook } from '@testing-library/react-native';
 import tw, { Provider, useColorScheme } from './index';
 import { View, Text } from 'react-native';
 

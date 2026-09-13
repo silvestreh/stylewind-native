@@ -4,3 +4,5 @@ coverage/
 tsconfig.json
 babel.*
 jest.*
+tailwind.config.cjs
+.zed/

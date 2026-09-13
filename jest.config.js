@@ -1,11 +1,11 @@
 export default {
   preset: 'react-native',
   transform: {
-    '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',
+    '^.+\\.(js|jsx|ts|tsx|cjs)$': 'babel-jest',
   },
   setupFiles: ['<rootDir>/jest.setup.js'],
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.(ts|tsx)$',
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'cjs'],
   setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect'],
   globals: {
     __DEV__: true,

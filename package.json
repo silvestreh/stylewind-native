@@ -4,6 +4,24 @@
   "description": "A lightweight utility for applying dynamic Tailwind CSS styles in React Native",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./tailwind": {
+      "types": "./tailwind.d.cts",
+      "default": "./tailwind.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "tailwind": [
+        "./tailwind.d.cts"
+      ]
+    }
+  },
   "type": "module",
   "repository": {
     "type": "git",
@@ -49,6 +67,7 @@
     "metro-react-native-babel-preset": "^0.77.0",
     "react-test-renderer": "^18.3.1",
     "rimraf": "^6.0.1",
+    "tailwindcss": "^3.4.13",
     "ts-jest": "^29.2.5",
     "typescript": "^5.6.2"
   }
